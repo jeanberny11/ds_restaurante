@@ -55,10 +55,10 @@ mensaje(BuildContext context, String mensaje,
 }
 
 Future<double> numericInputDialog(
-    BuildContext context, String title, double defaultvalue) async {
+    BuildContext buildContext, String title, double defaultvalue) async {
   final valueController = TextEditingController(text: defaultvalue.toString());
   final result = await showDialog<double>(
-      context: context,
+      context: buildContext,
       builder: (context) {
         return AlertDialog(
           elevation: 5.0,
@@ -72,7 +72,7 @@ Future<double> numericInputDialog(
           actions: [
             ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context, 0.0);
+                  Navigator.pop(context);
                 },
                 child: const Text(
                   'Cancel',
@@ -90,10 +90,10 @@ Future<double> numericInputDialog(
   return result ?? 0;
 }
 
-Future<String> memoInputDialog(BuildContext context, String title) async {
+Future<String> memoInputDialog(BuildContext buildContext, String title) async {
   final valueController = TextEditingController(text: '');
   final result = await showDialog<String>(
-      context: context,
+      context: buildContext,
       builder: (context) {
         return AlertDialog(
           elevation: 5.0,
@@ -108,7 +108,7 @@ Future<String> memoInputDialog(BuildContext context, String title) async {
           actions: [
             ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context, 0.0);
+                  Navigator.pop(context);
                 },
                 child: const Text(
                   'Cancel',

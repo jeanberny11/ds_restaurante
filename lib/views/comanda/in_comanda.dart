@@ -629,10 +629,10 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
                                 _calcular();
                               }
                             },
-                            backgroundColor: Colors.orange,
+                            backgroundColor: Colors.blue[400]!,
                             foregroundColor: Colors.white,
-                            icon: Icons.monetization_on_outlined,
-                            label: 'Precio',
+                            icon: Icons.chat,
+                            label: 'Comentario',
                           ),
                           SlidableAction(
                             onPressed: (context) async {
