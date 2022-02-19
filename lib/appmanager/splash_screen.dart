@@ -1,29 +1,19 @@
+import 'dart:io';
+
 import 'package:ds_restaurante/appmanager/cubit/app_state_manager_cubit.dart';
 import 'package:ds_restaurante/data/hive/boxes_name.dart';
 import 'package:ds_restaurante/data/hive/database_setup.dart';
+import 'package:ds_restaurante/utils/app_utils.dart';
 import 'package:ds_restaurante/utils/page_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:sizer/sizer.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({Key? key}) : super(key: key);
-
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    init();
-  }
-
-  void init() {
-    context.read<AppStateManagerCubit>().initApp();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,11 +115,24 @@ class _SplashScreenState extends State<SplashScreen> {
             }
           });
         }
-        if (state is AppStateManagerInitialSetup) {
-          context.read<AppStateManagerCubit>().initSetup();
-        }
         if (state is AppStateManagerInitialized) {
           Navigator.of(context).pushReplacementNamed(PageRoutes.loginroutes);
+        }
+        if (state is AppStateManagerSerialNotRegistred) {
+          Navigator.of(context)
+              .push(MaterialPageRoute(
+            builder: (context) => const SerialRegistrer(),
+          ))
+              .then((value) {
+            if (value != null) {
+              final res = value as Map<String, String>;
+              context
+                  .read<AppStateManagerCubit>()
+                  .verificarSerial(res['deviceid']!, res['deviceserial']!);
+            } else {
+              context.read<AppStateManagerCubit>().initSetup();
+            }
+          });
         }
       },
     );
@@ -340,6 +343,98 @@ class _SetupViewState extends State<SetupView> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class SerialRegistrer extends StatefulWidget {
+  const SerialRegistrer({Key? key}) : super(key: key);
+
+  @override
+  _SerialRegistrerState createState() => _SerialRegistrerState();
+}
+
+class _SerialRegistrerState extends State<SerialRegistrer> {
+  late TextEditingController _serialController;
+  final _deviceInfo = DeviceInfoPlugin();
+  late String _deviceId;
+  @override
+  void initState() {
+    super.initState();
+    _serialController = TextEditingController(text: '');
+    _deviceId = "";
+    _loadDeviceId();
+  }
+
+  void _loadDeviceId() async {
+    if (Platform.isAndroid) {
+      final androidInfo = await _deviceInfo.androidInfo;
+      setState(() {
+        _deviceId = androidInfo.id!;
+      });
+    } else {
+      setState(() {
+        _deviceId = 'La aplicacion no soporta esta plataforma';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'ID DISPOSITIVO',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 10.sp),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Text(
+              _deviceId,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 8.5.sp),
+            ),
+            const SizedBox(
+              height: 30.0,
+            ),
+            const Text('Digite el serial del producto'),
+            TextField(
+              controller: _serialController,
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (value) {},
+            ),
+            const SizedBox(
+              height: 10.0,
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  if (_serialController.text.isEmpty) {
+                    mensaje(context, 'Debe digitar un serial');
+                    return;
+                  }
+                  final result = {
+                    "deviceid": _deviceId,
+                    "deviceserial": _serialController.text
+                  };
+                  Navigator.of(context).pop(result);
+                },
+                child: const Text(
+                  'Regustrar',
+                  style: TextStyle(color: Colors.white),
+                ))
+          ],
         ),
       ),
     );

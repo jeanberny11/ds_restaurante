@@ -6,7 +6,6 @@ import 'package:ds_restaurante/data/models/detalle_comanda.dart';
 import 'package:ds_restaurante/data/models/header_comanda.dart';
 import 'package:ds_restaurante/data/models/mesa_ocupada.dart';
 import 'package:ds_restaurante/data/models/mesas.dart';
-import 'package:ds_restaurante/data/models/ncf.dart';
 import 'package:ds_restaurante/data/models/preferencia.dart';
 import 'package:ds_restaurante/data/models/productos.dart';
 import 'package:ds_restaurante/utils/app_utils.dart';
@@ -49,7 +48,7 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
   late TextEditingController _clienteidController,
       _nombreclienteController,
       _rncController;
-  late int _ncfid;
+  //late int _ncfid;
   late double _subtotal,
       _montoexento,
       _baseimponible,
@@ -59,7 +58,7 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
       _montodelivery;
   late bool _calcularley, _delivery, _deli1, _deli2;
   late FocusNode _clienteidFocus, _nombreClienteFocus, _rncFocus, _ncfFocus;
-  late List<Ncf> _ncfs;
+  //late List<Ncf> _ncfs;
   late List<Productos> _productos;
   late List<ComandaItem> _comandaItems;
   late Preferencia _preferencia;
@@ -70,18 +69,18 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
   void initState() {
     super.initState();
     _categorias = [];
-    _ncfs = [];
+    //_ncfs = [];
     _productos = [];
     _comandaItems = [];
     _mesasJuntas = [];
     _loadCategorias();
-    _loadncfs();
+    //_loadncfs();
     _loadPreferencia();
     _mesa = widget.mesa;
     _clienteidController = TextEditingController(text: '');
     _nombreclienteController = TextEditingController(text: '');
     _rncController = TextEditingController(text: '');
-    _ncfid = 1;
+    //_ncfid = 1;
     _subtotal = 0;
     _itbis = 0;
     _ley = 0;
@@ -113,12 +112,12 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
     }
   }
 
-  void _loadncfs() async {
+  /*void _loadncfs() async {
     final ncfs = await context.read<InComandaCubit>().getAllNcfs;
     setState(() {
       _ncfs = ncfs;
     });
-  }
+  }*/
 
   void _loadProductos(int categoriaid) async {
     final productos =
@@ -130,6 +129,23 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
 
   void _loadPreferencia() async {
     _preferencia = (await context.read<InComandaCubit>().getPreferencia)!;
+  }
+
+  Future<void> _getCliente(int clienteid) async {
+    try {
+      final cliente =
+          await context.read<InComandaCubit>().getClienteById(clienteid);
+      if (cliente != null) {
+        setState(() {
+          _clienteidController.text = cliente.f_id.toString();
+          _nombreclienteController.text =
+              '${cliente.f_nombre ?? ''} ${cliente.f_apellido ?? ''}';
+          _rncController.text = cliente.f_rif ?? '';
+        });
+      }
+    } catch (ex) {
+      mensaje(context, ex.toString());
+    }
   }
 
   void _calcular() {
@@ -155,7 +171,7 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
       if (_calcularley && item.pley > 0) {
         ml = (me + bi) * (item.pley / 100);
       }
-      mt = me + bi + imp;
+      mt = me + bi + imp + ml;
       _comandaItems[_comandaItems.indexOf(item)] = item.copyWith(
           montobruto: mb,
           montoexento: me,
@@ -184,20 +200,6 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
     if (_comandaItems.isEmpty) {
       mensaje(context, 'No existen Productos para esta Factura...!!');
       return;
-    }
-    if ((double.tryParse(_clienteidController.text) ?? 0) > 0 &&
-        _ncfid > 0 &&
-        _ncfid != 1 &&
-        _ncfid != 11) {
-      if (_rncController.text.isEmpty) {
-        mensaje(context, 'Debe digitar el rnc del cliente');
-        return;
-      }
-
-      if (_rncController.text.length < 9) {
-        mensaje(context, 'Rnc o cedula invalido');
-        return;
-      }
     }
 
     final confirm = await confirmaraviso(context, 'Desea salvar esta comanda?');
@@ -275,8 +277,12 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
           await context.read<InComandaCubit>().getDetalleComanda(documento);
       _documento = header.documento;
       _clienteidController.text = header.clienteid.toString();
-      _nombreclienteController.text = header.nombrecliente;
-      _rncController.text = header.rnc;
+      if (header.clienteid > 0) {
+        await _getCliente(header.clienteid);
+      } else {
+        _nombreclienteController.text = header.nombrecliente;
+        _rncController.text = header.rnc;
+      }
       _subtotal = header.monto;
       _itbis = header.itbis;
       _ley = header.ley;
@@ -608,7 +614,7 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
             ),
             SizedBox(
               width: 100.0.w,
-              height: 25.0.h,
+              height: 24.0.h,
               child: ListView.builder(
                   padding: const EdgeInsets.all(10.0),
                   itemCount: _comandaItems.length,
@@ -633,21 +639,6 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
                             foregroundColor: Colors.white,
                             icon: Icons.chat,
                             label: 'Comentario',
-                          ),
-                          SlidableAction(
-                            onPressed: (context) async {
-                              final precio = await numericInputDialog(
-                                  context, 'Digite el precio', item.precio);
-                              if (precio > 0) {
-                                _comandaItems[index] =
-                                    item.copyWith(precio: precio);
-                                _calcular();
-                              }
-                            },
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                            icon: Icons.monetization_on_outlined,
-                            label: 'Precio',
                           ),
                           SlidableAction(
                             onPressed: (context) async {
@@ -766,7 +757,7 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
                                       _nombreclienteController.text =
                                           res.f_nombre!;
                                       _rncController.text = res.f_rif!;
-                                      _ncfid = res.f_tipo_comprobante ?? 1;
+                                      //_ncfid = res.f_tipo_comprobante ?? 1;
                                     });
                                   }
                                 },
@@ -778,7 +769,14 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
                           textInputAction: TextInputAction.search,
                           keyboardType: TextInputType.number,
                           focusNode: _clienteidFocus,
-                          onSubmitted: (value) {},
+                          onSubmitted: (value) {
+                            if (value.isNotEmpty) {
+                              final clienteid = int.tryParse(value) ?? 0;
+                              if (clienteid > 0) {
+                                _getCliente(clienteid);
+                              }
+                            }
+                          },
                           decoration: const InputDecoration(
                             hintText: 'Id Cliente',
                           ),
@@ -838,28 +836,6 @@ class _InComandaPortraitState extends State<InComandaPortrait> {
                 const SizedBox(
                   width: 10,
                 ),
-                Flexible(
-                    child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Ncf'),
-                    DropdownButton<int>(
-                      value: _ncfid,
-                      items: _ncfs
-                          .map<DropdownMenuItem<int>>((e) => DropdownMenuItem(
-                                value: e.f_codigo,
-                                child: Text(e.f_descripcion),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _ncfid = value!;
-                        });
-                      },
-                    )
-                  ],
-                ))
               ],
             ),
             Row(

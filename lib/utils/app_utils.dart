@@ -101,7 +101,7 @@ Future<String> memoInputDialog(BuildContext buildContext, String title) async {
           content: TextField(
             controller: valueController,
             maxLines: 2,
-            keyboardType: TextInputType.text,
+            keyboardType: TextInputType.multiline,
             textInputAction: TextInputAction.newline,
             decoration: const InputDecoration(hintText: 'Escriba un texto'),
           ),

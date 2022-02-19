@@ -107,7 +107,7 @@ class OutZonas extends StatelessWidget {
                       headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
                       SliverAppBar(
-                        title: const Text('Meses Disponibles'),
+                        title: const Text('Mesas Disponibles'),
                         pinned: true,
                         floating: true,
                         bottom: TabBar(
@@ -160,7 +160,7 @@ class _OutmesasState extends State<Outmesas> {
     super.initState();
     _mensasocupadas = [];
     init();
-    _timer = Timer.periodic(const Duration(seconds: 15), _timeraction);
+    _timer = Timer.periodic(const Duration(seconds: 5), _timeraction);
     _visibilitypercent = 0;
   }
 

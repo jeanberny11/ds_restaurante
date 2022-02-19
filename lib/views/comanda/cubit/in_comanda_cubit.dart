@@ -45,4 +45,7 @@ class InComandaCubit extends Cubit<InComandaState> {
 
   Future<List<DetalleComanda>> getDetalleComanda(String documento) =>
       _manager.getDetalleComanda(documento);
+
+  Future<Cliente?> getClienteById(int clienteid) =>
+      _clientesManager.getClienteById(clienteid);
 }

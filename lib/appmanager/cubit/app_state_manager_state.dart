@@ -9,9 +9,9 @@ abstract class AppStateManagerState extends Equatable {
 
 class AppStateManagerInitial extends AppStateManagerState {}
 
-class AppStateManagerInitialSetup extends AppStateManagerState {}
-
 class AppStateManagerUnConfigured extends AppStateManagerState {}
+
+class AppStateManagerSerialNotRegistred extends AppStateManagerState {}
 
 class AppStateManagerloading extends AppStateManagerState {
   final String message;
